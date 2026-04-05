@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Result</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f7fa;
+            padding: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin: 20px auto;
+            width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .green { color: green; }
+        .red { color: red; }
+    </style>
+</head>
+<body>
+
+<h2>📊 Resume Analysis Result</h2>
+
+<div class="card">
+    <h3 class="green">✅ Present Skills</h3>
+    <p>{{ present_skills }}</p>
+</div>
+
+<div class="card">
+    <h3 class="red">❌ Missing Skills</h3>
+    <p>{{ missing_skills }}</p>
+</div>
+
+<div class="card">
+    <h3>💡 Suggestions</h3>
+    <p>{{ suggestions }}</p>
+</div>
+
+</body>
+</html>
