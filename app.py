@@ -3,37 +3,82 @@ import PyPDF2
 
 app = Flask(__name__)
 
-def extract_text(file):
-    pdf = PyPDF2.PdfReader(file)
-    text = ""
-    for page in pdf.pages:
-        text += page.extract_text()
-    return text.lower()
+# Required skills list
+required_skills = [
+    "python", "machine learning", "sql", "data structures",
+    "communication", "git", "problem solving"
+]
 
-def analyze_resume(text):
-    skills_list = ["python", "java", "c++", "html", "css", "javascript"]
+@app.route('/')
+def home():
+    return render_template('index.html')
 
-    found_skills = []
-    score = 0
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    
+    # File validation
+    if 'resume' not in request.files:
+        return "❌ No file uploaded"
 
-    for skill in skills_list:
-        if skill in text:
-            found_skills.append(skill)
-            score += 15
+    file = request.files['resume']
 
-    return score, found_skills
+    if file.filename == '':
+        return "❌ No selected file"
 
-@app.route("/", methods=["GET", "POST"])
-def index():
-    score = None
-    skills = None
+    if not file.filename.endswith('.pdf'):
+        return "❌ Invalid file format! Please upload a PDF."
 
-    if request.method == "POST":
-        file = request.files["resume"]
-        text = extract_text(file)
-        score, skills = analyze_resume(text)
+    # Read PDF safely
+    try:
+        pdf_reader = PyPDF2.PdfReader(file)
+    except:
+        return "❌ Error reading file. Please upload a valid PDF."
 
-    return render_template("index.html", score=score, skills=skills)
+    # Extract text
+    resume_text = ""
+    for page in pdf_reader.pages:
+        text = page.extract_text()
+        if text:
+            resume_text += text
 
-if __name__ == "__main__":
+    resume_text = resume_text.lower()
+
+    # Skill analysis
+    missing_skills = []
+    for skill in required_skills:
+        if skill not in resume_text:
+            missing_skills.append(skill)
+
+    # Suggestions
+    suggestions = []
+
+    if "project" not in resume_text:
+        suggestions.append("Add projects to strengthen your resume")
+
+    if "internship" not in resume_text:
+        suggestions.append("Include internships or real-world experience")
+
+    if "achievement" not in resume_text:
+        suggestions.append("Mention achievements or certifications")
+
+    # Score system
+    score = 100 - (len(missing_skills) * 10)
+    if score < 0:
+        score = 0
+
+    # Final result
+    result = f"📊 Resume Score: {score}/100\n\n"
+
+    if missing_skills:
+        result += "🔴 Missing Skills:\n- " + "\n- ".join(missing_skills)
+    else:
+        result += "✅ Great! You have most required skills\n"
+
+    if suggestions:
+        result += "\n\n💡 Suggestions:\n- " + "\n- ".join(suggestions)
+
+    return f"<pre>{result}</pre>"
+
+
+if __name__ == '__main__':
     app.run(debug=True)
